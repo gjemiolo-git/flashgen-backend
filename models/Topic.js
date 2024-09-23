@@ -3,7 +3,6 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
     class Topic extends Model {
         static associate(models) {
-            // define associations here
             Topic.belongsTo(models.Topic, { as: 'parent', foreignKey: 'parent_id' });
             Topic.belongsTo(models.User, { as: 'creator', foreignKey: 'created_by' });
         }

@@ -3,7 +3,6 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
     class Quiz extends Model {
         static associate(models) {
-            // define associations here
             Quiz.belongsTo(models.Topic, { foreignKey: 'topic_id' });
             Quiz.belongsTo(models.User, { as: 'creator', foreignKey: 'created_by' });
         }

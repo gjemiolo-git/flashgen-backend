@@ -11,6 +11,7 @@ async function createDummyUser() {
     try {
         // Sync the model with the database
         await sequelize.query(`DELETE FROM "Users" WHERE 1=1;`);
+        //await sequelize.query(`DROP TABLE "Users";`);
         await sequelize.sync();
 
         const hashedPassword = 'password123-hashed'
@@ -18,6 +19,7 @@ async function createDummyUser() {
         // Create a dummy user
         const dummyUser = await User.create({
             email: 'dummy@example.com',
+            username: 'dummyUser',
             password_hash: hashedPassword,
             role: 'user'
         });
@@ -37,7 +39,7 @@ async function getUserByEmail(email) {
         });
 
         if (user) {
-            console.log('User found:', user);
+            console.log('User found:', user.toJSON());
             return user;
         } else {
             console.log('No user found with this email.');
@@ -57,7 +59,7 @@ app.use(errorHandler);
 
 app.get('/', async (req, res) => {
     await initDB();
-    await createDummyUser();
+    //await createDummyUser();
     await getUserByEmail('dummy@example.com')
         .catch(error => {
             console.error('Error:', error);

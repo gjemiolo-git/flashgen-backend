@@ -1,48 +1,50 @@
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
-    class QuizQuestion extends Model {
+    class Flashcard extends Model {
         static associate(models) {
-            QuizQuestion.belongsTo(models.Quiz, { foreignKey: 'quiz_id' });
-            QuizQuestion.belongsTo(models.Concept, { foreignKey: 'concept_id' });
+            // Define associations here
+            Flashcard.belongsTo(models.FlashcardSet, { foreignKey: 'setId', as: 'set' });
+            Flashcard.belongsToMany(models.Topic, { through: 'FlashcardTopics', as: 'topics' });
         }
     }
 
-    QuizQuestion.init({
+    Flashcard.init({
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
-        quiz_id: {
+        setId: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
+            references: {
+                model: 'FlashcardSets',
+                key: 'id'
+            }
         },
-        concept_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-        question_text: {
+        frontContent: {
             type: DataTypes.TEXT,
             allowNull: false
         },
-        correct_answer: {
+        backContent: {
             type: DataTypes.TEXT,
             allowNull: false
         },
-        created_at: {
+        createdAt: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW
         },
-        updated_at: {
+        updatedAt: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW
         }
     }, {
         sequelize,
-        modelName: 'QuizQuestion',
-        timestamps: false
+        modelName: 'Flashcard',
+        tableName: 'flashcards',
+        timestamps: true
     });
 
-    return QuizQuestion;
+    return Flashcard;
 };
