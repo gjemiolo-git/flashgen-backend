@@ -3,8 +3,9 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
 const express = require('express');
-const { initDB, sequelize } = require('./dbInit.jsx');
-const User = require('./models/User.jsx')(sequelize);
+const { initDB, sequelize } = require('./utils/dbInit.js');
+const User = require('./models/User.js')(sequelize);
+const { errorHandler, ExpressError } = require('./middleware/errorHandler');
 
 async function createDummyUser() {
     try {
@@ -49,10 +50,10 @@ async function getUserByEmail(email) {
 }
 
 
-
 // Express
 const app = express();
 app.use(express.urlencoded({ extended: true }));
+app.use(errorHandler);
 
 app.get('/', async (req, res) => {
     await initDB();
@@ -67,6 +68,11 @@ app.get('/', async (req, res) => {
 
 
 })
+
+app.all('*', (req, res, next) => {
+    next(new ExpressError('Page not founddd!', 404));
+})
+app.use(errorHandler);
 
 app.listen(3000, () => {
     console.log('Serving on port 3000');
