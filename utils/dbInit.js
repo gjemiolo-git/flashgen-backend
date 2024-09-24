@@ -11,8 +11,6 @@ const sequelize = new Sequelize(dbName, dbUsername, dbPw, {
 });
 
 const initDB = async () => {
-    // Test the connection and create the database if it doesn't exist
-    // Check if the target database exists
     const initialSequelize = new Sequelize('postgres', dbUsername, dbPw, {
         host: dbAddress,
         dialect: 'postgres',
@@ -25,9 +23,10 @@ const initDB = async () => {
         // If the database doesn't exist, create it
         await initialSequelize.query(`CREATE DATABASE ${dbName}`);
         console.log(`Database ${dbName} created successfully.`);
-    } else {
-        console.log(`Database ${dbName} already exists.`);
     }
+    // else {
+    //     console.log(`Database ${dbName} already exists.`);
+    // }
 
     // Close the initial connection
     await initialSequelize.close();
