@@ -3,9 +3,10 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
 const express = require('express');
-const { initDB, sequelize } = require('./utils/dbInit.js');
-const User = require('./models/User.js')(sequelize);
-const { errorHandler, ExpressError } = require('./middleware/errorHandler');
+const { initDB, sequelize } = require('./db/dbInit.js');
+const User = require('./db/models/User.js')(sequelize);
+const { errorHandler, ExpressError } = require('./middleware/errorHandler.js');
+const { SERVER_PORT } = require('./constants/index.js');
 
 async function createDummyUser() {
     try {
@@ -76,6 +77,6 @@ app.all('*', (req, res, next) => {
 })
 app.use(errorHandler);
 
-app.listen(3000, () => {
-    console.log('Serving on port 3000');
+app.listen(SERVER_PORT, () => {
+    console.log(`Serving on port ${SERVER_PORT}`);
 })
