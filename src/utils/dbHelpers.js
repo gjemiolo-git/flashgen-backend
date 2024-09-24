@@ -1,11 +1,12 @@
-const { sequelize } = require('../db/initDb.js');
+const { Op } = require('sequelize');
+const { sequelize } = require('../db/index.js');
 const User = require('../db/models/User.js')(sequelize);
 
 async function createDummyUser() {
     try {
         // Sync the model with the database
         await sequelize.query(`DELETE FROM "Users" WHERE 1=1;`);
-        //await sequelize.query(`DROP TABLE "Users";`);
+        await sequelize.query(`DROP TABLE "Users";`);
         await sequelize.sync();
 
         const hashedPassword = 'password123-hashed'
@@ -23,6 +24,31 @@ async function createDummyUser() {
         console.error('Error creating dummy user:', error);
     }
 }
+
+async function getUser(identifier) {
+    try {
+        const user = await User.findOne({
+            where: {
+                [Op.or]: [
+                    { email: identifier },
+                    { id: isNaN(identifier) ? null : identifier },
+                    { username: identifier }
+                ]
+            }
+        });
+
+        if (user) {
+            //console.log('User found:', user.toJSON());
+            return { user };
+        } else {
+            return { user: null };
+        }
+    } catch (error) {
+        console.error('Error querying user:', error);
+        return { error };
+    }
+}
+
 
 async function getUserByEmail(email) {
     try {
@@ -45,4 +71,4 @@ async function getUserByEmail(email) {
     }
 }
 
-module.exports = { createDummyUser, getUserByEmail }
+module.exports = { createDummyUser, getUserByEmail, getUser }

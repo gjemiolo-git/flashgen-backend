@@ -29,7 +29,8 @@ const initDb = async () => {
         throw new ExpressError(e, 500);
     } finally {
         await initialSequelize.close();
-        console.log(`Database ${DB_NAME} initiated successfully`)
+        await sequelize.sync({ alter: true });
+        console.log(`Database ${DB_NAME} initiated successfully`);
     }
 }
 

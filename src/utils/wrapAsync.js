@@ -1,10 +1,10 @@
-const wrapAsyncEx = fn => {
+const wrapAsync = fn => {
     return (req, res, next) => {
         fn(req, res, next).catch(next);
     }
 };
 
-const wrapAsync = (fn) => {
+const wrapAsyncGen = (fn) => {
     return async () => {
         try {
             await fn();
@@ -15,4 +15,4 @@ const wrapAsync = (fn) => {
     };
 };
 
-module.exports = { wrapAsyncEx, wrapAsync };
+module.exports = { wrapAsyncGen, wrapAsync };
