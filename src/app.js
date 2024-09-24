@@ -3,25 +3,34 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
 const express = require('express');
+const app = express();
 const session = require('express-session');
+const passport = require('passport');
+const cors = require('cors');
+require('./middleware/passport-middleware');
 // const RedisStore = require('connect-redis').default;
 // const { redisClient, getAsync, setAsync } = require('./services/redisService');
 
 const { sequelize, initDb } = require('./db');
 const { wrapAsync, wrapAsyncGen } = require('./utils/wrapAsync');
 const { errorHandler, ExpressError } = require('./middleware/errorHandler');
-const { SERVER_PORT, SESSION_SECRET } = require('./constants/index');
+const { SERVER_PORT, SESSION_SECRET, CLIENT_URL } = require('./constants/index');
+const cookieParser = require('cookie-parser');
 
 // Import routes
 const testDb = require('./routes/testDb');
 const authRoutes = require('./routes/auth');
+
+// Testers
 const { createDummyUser } = require('./utils/dbHelpers');
-const { checkRedisConnection } = require('./utils/testers');
+//const { checkRedisConnection } = require('./utils/testers');
 
 // Express
-const app = express();
-app.use(express.json());
 
+app.use(express.json());
+app.use(cookieParser());
+app.use(passport.initialize());
+app.use(cors({ origin: CLIENT_URL, credentials: true }));
 // Redis
 // const redisStore = new RedisStore({
 //     client: redisClient,

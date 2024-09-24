@@ -38,13 +38,27 @@ async function getUser(identifier) {
         });
 
         if (user) {
-            //console.log('User found:', user.toJSON());
             return { user };
         } else {
             return { user: null };
         }
     } catch (error) {
         console.error('Error querying user:', error);
+        return { error };
+    }
+}
+
+async function getUserById(id) {
+    try {
+        const user = await User.findByPk(id);
+
+        if (user) {
+            return { user };
+        } else {
+            return { user: null };
+        }
+    } catch (error) {
+        console.error('Error querying user by ID:', error);
         return { error };
     }
 }
@@ -71,4 +85,4 @@ async function getUserByEmail(email) {
     }
 }
 
-module.exports = { createDummyUser, getUserByEmail, getUser }
+module.exports = { createDummyUser, getUserByEmail, getUser, getUserById }
