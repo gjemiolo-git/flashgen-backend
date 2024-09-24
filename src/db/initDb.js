@@ -9,7 +9,7 @@ const sequelize = new Sequelize(DB_NAME, DB_USERNAME, DB_PASSWORD, {
     logging: false
 });
 
-const initDB = async () => {
+const initDb = async () => {
     const initialSequelize = new Sequelize('postgres', DB_USERNAME, DB_PASSWORD, {
         host: DB_ADDRESS,
         dialect: 'postgres',
@@ -29,7 +29,8 @@ const initDB = async () => {
         throw new ExpressError(e, 500);
     } finally {
         await initialSequelize.close();
+        console.log(`Database ${DB_NAME} initiated successfully`)
     }
 }
 
-module.exports = { initDB, sequelize };
+module.exports = { sequelize, initDb };

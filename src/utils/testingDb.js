@@ -1,12 +1,5 @@
-// Dependencies
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config();
-}
-const express = require('express');
-const { initDB, sequelize } = require('./db/dbInit.js');
-const User = require('./db/models/User.js')(sequelize);
-const { errorHandler, ExpressError } = require('./middleware/errorHandler.js');
-const { SERVER_PORT } = require('./constants/index.js');
+const { sequelize } = require('../db/initDb.js');
+const User = require('../db/models/User.js')(sequelize);
 
 async function createDummyUser() {
     try {
@@ -52,31 +45,4 @@ async function getUserByEmail(email) {
     }
 }
 
-
-// Express
-const app = express();
-app.use(express.urlencoded({ extended: true }));
-app.use(errorHandler);
-
-app.get('/', async (req, res) => {
-    await initDB();
-    //await createDummyUser();
-    await getUserByEmail('dummy@example.com')
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    // Close the database connection
-    await sequelize.close().catch(e => console.log(`Error closing connection:`, e));
-    res.send('Hello world!');
-
-
-})
-
-app.all('*', (req, res, next) => {
-    next(new ExpressError('Page not founddd!', 404));
-})
-app.use(errorHandler);
-
-app.listen(SERVER_PORT, () => {
-    console.log(`Serving on port ${SERVER_PORT}`);
-})
+module.exports = { createDummyUser, getUserByEmail }
