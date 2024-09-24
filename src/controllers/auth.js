@@ -1,12 +1,14 @@
 const { sequelize } = require('../db/');
 const { wrapAsync } = require('../utils/wrapAsync');
 const { hash } = require('bcryptjs');
+const { sign } = require('jsonwebtoken');
 const User = require('../db/models/User')(sequelize);
+const { JWT_SECRET } = require('../constants');
 
 exports.getUsers = async (req, res) => {
     try {
         const users = await User.findAll({
-            attributes: ['id', 'username', 'email', 'password_hash  ']
+            attributes: ['id', 'username', 'email', 'password_hash']
         })
         return res.status(200).json({
             success: true,
@@ -38,11 +40,20 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+    const user = req.user;
+    const payload = {
+        id: user.id,
+        email: user.email
+    }
     try {
-        return res.status(200).json({
-            success: true,
-            body: { ...req.body }
-        })
+        const token = await sign(payload, JWT_SECRET);
+        return res.status(200)
+            .cookie('token', token)
+            .json({
+                success: true,
+                user: { ...payload }
+            })
+
     } catch (error) {
         return res.status(500).json({
             error: error.message

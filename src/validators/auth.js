@@ -35,6 +35,8 @@ const loginFields = check('email').custom(async (value, { req }) => {
     if (!validPassword) {
         throw new ExpressError('Provided password is invalid.', 401)
     }
+
+    req.user = user;
 })
 
 module.exports = {
