@@ -6,7 +6,7 @@ const User = require('../db/models/User')(sequelize);
 exports.getUsers = async (req, res) => {
     try {
         const users = await User.findAll({
-            attributes: ['id', 'username', 'email']
+            attributes: ['id', 'username', 'email', 'password_hash  ']
         })
         return res.status(200).json({
             success: true,
@@ -36,3 +36,16 @@ exports.register = async (req, res) => {
         })
     }
 };
+
+exports.login = async (req, res) => {
+    try {
+        return res.status(200).json({
+            success: true,
+            body: { ...req.body }
+        })
+    } catch (error) {
+        return res.status(500).json({
+            error: error.message
+        })
+    }
+}
