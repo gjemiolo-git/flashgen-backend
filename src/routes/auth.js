@@ -7,7 +7,7 @@ const { validationMiddleware, authenticateJWT } = require('../middleware/auth');
 
 router.get('/get-users', wrapAsync(getUsers));
 router.get('/protected', authenticateJWT, protected);
-router.post('/logout', authenticateJWT, logout);
+router.post('/logout', logout);
 router.post('/register', registerValidation, validationMiddleware, wrapAsync(register));
 router.post('/login', loginValidation, validationMiddleware, wrapAsync(login));
 

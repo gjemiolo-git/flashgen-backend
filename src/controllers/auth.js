@@ -24,7 +24,7 @@ exports.getUsers = async (req, res) => {
 exports.logout = (req, res) => {
     res.status(200)
         .clearCookie('jwt', { httpOnly: true })
-        .json({ message: 'Logged out successfully' });
+        .json({ success: true, message: 'Logged out successfully' });
 };
 
 exports.protected = async (req, res) => {
