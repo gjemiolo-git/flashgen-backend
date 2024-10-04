@@ -43,7 +43,7 @@ async function getUser(identifier) {
             return { user: null };
         }
     } catch (error) {
-        console.error('Error querying user:', error);
+        console.error('Error querying user by all:', error);
         return { error };
     }
 }
@@ -80,7 +80,7 @@ async function getUserByEmail(email) {
             return null;
         }
     } catch (error) {
-        console.error('Error querying user:', error);
+        console.error('Error querying user by email:', error);
         throw error;
     }
 }
