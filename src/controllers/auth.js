@@ -23,7 +23,7 @@ exports.getUsers = async (req, res) => {
 
 exports.logout = (req, res) => {
     res.status(200)
-        .clearCookie('jwt', { httpOnly: true })
+        .clearCookie('jwt', { httpOnly: true, sameSite: 'Lax' })
         .json({ success: true, message: 'Logged out successfully' });
 };
 
