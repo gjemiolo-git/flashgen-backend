@@ -67,8 +67,12 @@ exports.login = async (req, res) => {
     try {
         const token = sign(payload, JWT_SECRET, { expiresIn: '1h' });
         return res.status(200)
-            .cookie('jwt', token, { httpOnly: true })
+            .cookie('jwt', token, { httpOnly: true, sameSite: 'Lax' })
             .json({
+                user: {
+                    username: user.username,
+                    email: user.email
+                },
                 success: true,
                 message: 'Logged in successfuly'
             })
