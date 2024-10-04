@@ -4,10 +4,10 @@ if (process.env.NODE_ENV !== 'production') {
 }
 const express = require('express');
 const app = express();
-const session = require('express-session');
 const passport = require('passport');
 const cors = require('cors');
 require('./middleware/passport-middleware');
+//const session = require('express-session');
 // const RedisStore = require('connect-redis').default;
 // const { redisClient, getAsync, setAsync } = require('./services/redisService');
 
