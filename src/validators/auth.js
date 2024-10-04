@@ -1,5 +1,5 @@
 const { check } = require('express-validator');
-const { getUser } = require('../utils/dbHelpers');
+const { getUser, getUserByEmail } = require('../utils/dbHelpers');
 const { ExpressError } = require('../middleware/errorHandler');
 const { compare } = require('bcryptjs');
 
@@ -26,20 +26,26 @@ const detailsExist = check(['email', 'username']).custom(async (value) => {
     }
 });
 
-const loginFields = check('email').custom(async (value, { req }) => {
-    const { user } = await getUser(value);
+const loginEmail = check('email').custom(async (value, { req }) => {
+    const { user } = await getUserByEmail(value);
     if (!user) {
         throw new ExpressError('User not found.', 404);
     }
-    const validPassword = await compare(req.body.password, user.password_hash)
-    if (!validPassword) {
-        throw new ExpressError('Provided password is invalid.', 401)
-    }
-
     req.user = user;
 })
 
+
+const loginPassword = check('password').custom(async (value, { req }) => {
+    if (req.user) {
+        const user = req.user;
+        const validPassword = await compare(req.body.password, user.password_hash)
+        if (!validPassword) {
+            throw new ExpressError('Provided password is invalid.', 401)
+        }
+    }
+});
+
 module.exports = {
     registerValidation: [email, username, usernameNotEmail, password, detailsExist],
-    loginValidation: [loginFields]
+    loginValidation: [loginEmail, loginPassword]
 }

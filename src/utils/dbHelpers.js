@@ -64,24 +64,23 @@ async function getUserById(id) {
 }
 
 
-async function getUserByEmail(email) {
+async function getUserByEmail(identifier) {
     try {
         const user = await User.findOne({
             where: {
-                email: email
+                email: identifier
             }
         });
-
         if (user) {
-            console.log('User found:', user.toJSON());
-            return user;
+            //console.log('User found:', user.toJSON());
+            return { user };
         } else {
-            console.log('No user found with this email.');
-            return null;
+            //console.log('No user found with this email.');
+            return { user: null };
         }
     } catch (error) {
         console.error('Error querying user by email:', error);
-        throw error;
+        return { error }
     }
 }
 
