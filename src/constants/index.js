@@ -19,5 +19,9 @@ module.exports = {
     REDIS_HOST: process.env.REDIS_HOST || 'localhost',
     REDIS_PASSWORD: process.env.REDIS_PASSWORD || 'pw',
     REDIS_PORT: process.env.REDIS_PORT || 6379,
-    SESSION_SECRET: process.env.SESSION_SECRET || 'session_secrett'
+    SESSION_SECRET: process.env.SESSION_SECRET || 'session_secrett',
+
+    //OPENAI
+    OPENAI_API_KEY: process.env.OPENAI_API_KEYY || 'none',
+    OPENAI_API_URL: process.env.OPENAI_API_URL || 'https://api.openai.com/v1/chat/completions',
 }

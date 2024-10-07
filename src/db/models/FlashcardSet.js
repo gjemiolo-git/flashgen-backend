@@ -3,7 +3,6 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
     class FlashcardSet extends Model {
         static associate(models) {
-            // Define associations here
             FlashcardSet.belongsTo(models.User, { foreignKey: 'createdBy', as: 'creator' });
             FlashcardSet.hasMany(models.Flashcard, { foreignKey: 'setId', as: 'flashcards' });
             FlashcardSet.belongsToMany(models.Topic, { through: 'FlashcardSetTopics', as: 'topics' });
@@ -39,7 +38,6 @@ module.exports = (sequelize) => {
     }, {
         sequelize,
         modelName: 'FlashcardSet',
-        tableName: 'flashcard_sets',
         timestamps: true
     });
 

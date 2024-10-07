@@ -42,7 +42,7 @@ module.exports = (sequelize) => {
     }, {
         sequelize,
         modelName: 'Flashcard',
-        tableName: 'flashcards',
+        // tableName: 'flashcards',
         timestamps: true
     });
 

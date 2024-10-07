@@ -5,6 +5,8 @@ module.exports = (sequelize) => {
         static associate(models) {
             Topic.belongsTo(models.Topic, { as: 'parent', foreignKey: 'parent_id' });
             Topic.belongsTo(models.User, { as: 'creator', foreignKey: 'created_by' });
+            Topic.belongsToMany(models.Flashcard, { through: 'FlashcardTopics' });
+            Topic.belongsToMany(models.FlashcardSet, { through: 'FlashcardSetTopics' });
         }
     }
 

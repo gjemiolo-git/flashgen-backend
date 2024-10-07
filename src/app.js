@@ -20,6 +20,7 @@ const cookieParser = require('cookie-parser');
 // Import routes
 const testDb = require('./routes/testDb');
 const authRoutes = require('./routes/auth');
+const aiRoutes = require('./routes/ai');
 
 // Testers
 const { createDummyUser } = require('./utils/dbHelpers');
@@ -52,6 +53,7 @@ app.use(cors({ origin: CLIENT_URL, credentials: true }));
 // Initialise routes
 app.use('/', testDb)
 app.use('/api/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Error Catching
 app.all('*', (req, res, next) => {
@@ -59,6 +61,7 @@ app.all('*', (req, res, next) => {
 })
 
 app.use(errorHandler);
+
 
 
 app.listen(SERVER_PORT, wrapAsyncGen(async () => {

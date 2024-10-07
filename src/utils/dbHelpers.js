@@ -84,4 +84,48 @@ async function getUserByEmail(identifier) {
     }
 }
 
+
+async function testAssociationsWithoutSetup() {
+    try {
+        console.log('Syncing database...');
+        await sequelize.sync({ force: true });
+
+        console.log('Creating a book...');
+        const book = await Book.create({ title: 'Sample Book' });
+
+        console.log('Creating an author...');
+        const author = await Author.create({ name: 'Sample Author' });
+
+        console.log('Attempting to associate book with author...');
+        // This might fail if associations aren't set up
+        try {
+            await book.addAuthor(author);
+        } catch (error) {
+            console.error('Failed to associate book with author:', error.message);
+        }
+
+        console.log('Attempting to fetch book with associated author...');
+        try {
+            const fetchedBook = await Book.findOne({
+                where: { id: book.id },
+                include: Author
+            });
+            console.log('Fetched book:', JSON.stringify(fetchedBook, null, 2));
+        } catch (error) {
+            console.error('Failed to fetch book with author:', error.message);
+        }
+
+        console.log('Checking if BookAuthors table exists...');
+        try {
+            const [results] = await sequelize.query('SELECT * FROM "BookAuthors"');
+            console.log('BookAuthors entries:', results);
+        } catch (error) {
+            console.error('Failed to query BookAuthors table:', error.message);
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
 module.exports = { createDummyUser, getUserByEmail, getUser, getUserById }

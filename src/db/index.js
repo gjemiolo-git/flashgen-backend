@@ -9,6 +9,14 @@ const sequelize = new Sequelize(DB_NAME, DB_USERNAME, DB_PASSWORD, {
     logging: false
 });
 
+const resolveAssociations = async () => {
+    Object.values(sequelize.models).forEach(model => {
+        if (model.associate) {
+            model.associate(sequelize.models);
+        }
+    });
+}
+
 const initDb = async () => {
     const initialSequelize = new Sequelize('postgres', DB_USERNAME, DB_PASSWORD, {
         host: DB_ADDRESS,
@@ -29,6 +37,7 @@ const initDb = async () => {
         throw new ExpressError(e, 500);
     } finally {
         await initialSequelize.close();
+        await resolveAssociations();
         await sequelize.sync({ alter: true });
         console.log(`Database ${DB_NAME} initiated successfully`);
     }
