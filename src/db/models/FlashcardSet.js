@@ -27,6 +27,11 @@ module.exports = (sequelize) => {
                 key: 'id'
             }
         },
+        visibility: {
+            type: DataTypes.ENUM('public', 'restricted', 'private'),
+            allowNull: false,
+            defaultValue: 'private'
+        },
         createdAt: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW

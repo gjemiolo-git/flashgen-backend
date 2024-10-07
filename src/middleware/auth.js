@@ -14,6 +14,19 @@ exports.validationMiddleware = (req, res, next) => {
 
 exports.authenticateJWT = passport.authenticate('jwt', { session: false });
 
+exports.publicAuthenticateJWT = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, (err, user, info) => {
+        if (err) {
+            return next(err);
+        }
+        if (user) {
+            req.user = user;
+        }
+        next();
+    })(req, res, next);
+};
+
+
 // exports.authenticateJWT = (req, res, next) => {
 //     passport.authenticate('jwt', { session: false }, (err, user, info) => {
 //         if (err) {

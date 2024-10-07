@@ -98,8 +98,6 @@ async function saveFlashcards(flashcardsArray, userId, topicName) {
 
 async function getUserFlashcardSets(userId, page = 1, limit = 5) {
     try {
-        //console.log(`Fetching flashcard sets for user ID: ${userId}, page: ${page}, limit: ${limit}`);
-
         const offset = (page - 1) * limit;
 
         const { count, rows: flashcardSets } = await FlashcardSet.findAndCountAll({
@@ -429,9 +427,67 @@ exports.getTopic = async (req, res) => {
     }
 };
 
+exports.getTopics = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 15;
+        const offset = (page - 1) * limit;
+        const user = req.user || null;
+
+        const { count, rows: topics } = await Topic.findAndCountAll({
+            where: { visibility: 'public' },
+            attributes: [
+                'id',
+                'name',
+                'created_by',
+                [sequelize.fn('COUNT', sequelize.col('FlashcardSets.id')), 'setCount']
+            ],
+            include: [
+                {
+                    model: FlashcardSet,
+                    attributes: [],
+                    through: { attributes: [] }
+                },
+                {
+                    model: User,
+                    attributes: ['id', 'username'],
+                    as: 'creator'
+                }
+            ],
+            group: ['Topic.id', 'creator.id'],
+            order: [['created_at', 'DESC']],
+            limit: limit,
+            offset: offset,
+            distinct: true,
+            subQuery: false
+        });
+
+        const formattedTopics = topics.map(topic => ({
+            id: topic.id,
+            name: topic.name,
+            isCreator: req.user ? user.id === topic.creator_id : false,
+            setCount: parseInt(topic.getDataValue('setCount'), 10)
+        }));
+
+        const totalCount = count.length;
+        const totalPages = Math.ceil(totalCount / limit);
+
+        res.status(200).json({
+            topics: formattedTopics,
+            totalCount: totalCount,
+            currentPage: page,
+            totalPages: totalPages
+        });
+    } catch (error) {
+        handleError(res, 'Error fetching topics', error);
+    }
+};
+
+
 
 exports.createTopic = async (req, res) => {
     try {
+
         const { name, parentId } = req.body;
         const userId = req.user.id;
 
@@ -444,7 +500,7 @@ exports.createTopic = async (req, res) => {
             parent_id: parentId,
             created_by: userId
         });
-
+        console.log(topic);
         res.status(201).json(topic);
     } catch (error) {
         handleError(res, 'Error creating topic', error);
@@ -504,7 +560,7 @@ exports.deleteTopic = async (req, res) => {
         }
 
         await topic.destroy();
-        res.status(204).send();
+        res.status(200).json({ success: true, message: "Topic removed successfully." });
     } catch (error) {
         res.status(500).json({ error: 'Error deleting topic', details: error.message });
     }

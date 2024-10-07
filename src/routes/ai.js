@@ -4,7 +4,7 @@ const { wrapAsync, wrapAsyncGen } = require('../utils/wrapAsync');
 const aiController = require('../controllers/ai');
 const { registerValidation, loginValidation } = require('../validators/auth');
 const { checkOwnership } = require('../middleware/authorize');
-const { validationMiddleware, authenticateJWT } = require('../middleware/auth');
+const { validationMiddleware, authenticateJWT, publicAuthenticateJWT } = require('../middleware/auth');
 
 //checkOwnership('flashcardSet')/
 
@@ -21,9 +21,10 @@ router.delete('/flashcard-sets/:id', aiController.deleteFlashcardSet);
 
 
 // Topic routes
-router.post('/topics', aiController.createTopic);
+router.post('/topics', authenticateJWT, aiController.createTopic);
 router.get('/topics/:id', aiController.getTopic);
-// router.delete('/topics/:id', authenticateJWT, aiController.deleteTopic);
+router.get('/topics', publicAuthenticateJWT, aiController.getTopics);
+router.delete('/topics/:id', aiController.deleteTopic);
 // router.put('/topics/:id', authenticateJWT, aiController.updateTopic);
 
 /// Flashcard routes
