@@ -4,7 +4,7 @@ module.exports = (sequelize) => {
     class FlashcardSet extends Model {
         static associate(models) {
             FlashcardSet.belongsTo(models.User, { foreignKey: 'createdBy', as: 'creator' });
-            FlashcardSet.hasMany(models.Flashcard, { foreignKey: 'setId', as: 'flashcards' });
+            FlashcardSet.hasMany(models.Flashcard, { foreignKey: 'setId', as: 'flashcards', onDelete: 'Cascade' });
             FlashcardSet.belongsToMany(models.Topic, { through: 'FlashcardSetTopics', as: 'topics' });
         }
     }

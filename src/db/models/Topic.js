@@ -3,8 +3,9 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
     class Topic extends Model {
         static associate(models) {
-            Topic.belongsTo(models.Topic, { as: 'parent', foreignKey: 'parent_id' });
             Topic.belongsTo(models.User, { as: 'creator', foreignKey: 'created_by' });
+            Topic.belongsTo(models.Topic, { as: 'parent', foreignKey: 'parent_id' });
+            Topic.hasMany(models.Topic, { as: 'children', foreignKey: 'parent_id' });
             Topic.belongsToMany(models.Flashcard, { through: 'FlashcardTopics' });
             Topic.belongsToMany(models.FlashcardSet, { through: 'FlashcardSetTopics' });
         }
