@@ -99,12 +99,12 @@ async function saveFlashcards(flashcardsArray, userId, topicName) {
 async function getUserFlashcardSets(userId, page = 1, limit = 5) {
     try {
         const offset = (page - 1) * limit;
-
         const { count, rows: flashcardSets } = await FlashcardSet.findAndCountAll({
             where: { createdBy: userId },
             attributes: [
                 'id',
                 'name',
+                'visibility'
             ],
             include: [
                 {
@@ -112,9 +112,15 @@ async function getUserFlashcardSets(userId, page = 1, limit = 5) {
                     as: 'flashcards',
                     attributes: [],
                     required: false
+                },
+                {
+                    model: Topic,
+                    as: 'topics',
+                    attributes: ['id', 'name'],
+                    through: { attributes: [] }
                 }
             ],
-            group: ['FlashcardSet.id'],
+            group: ['FlashcardSet.id', 'topics.id'],
             order: [['createdAt', 'DESC']],
             limit: limit,
             offset: offset,
@@ -127,14 +133,17 @@ async function getUserFlashcardSets(userId, page = 1, limit = 5) {
             return {
                 id: set.id,
                 name: set.name,
-                cardCount: cardCount
+                cardCount: cardCount,
+                visibility: set.visibility,
+                topics: set.topics.map(topic => ({
+                    id: topic.id,
+                    name: topic.name
+                }))
             };
         }));
 
         const totalCount = count.length;
         const totalPages = Math.ceil(totalCount / limit);
-
-        //console.log(`Found ${totalCount} total flashcard sets, returning ${formattedFlashcardSets.length} for page ${page}`);
 
         return {
             flashcardSets: formattedFlashcardSets,
@@ -147,6 +156,7 @@ async function getUserFlashcardSets(userId, page = 1, limit = 5) {
         throw error;
     }
 }
+
 
 exports.getUserFlashcardSets = async (req, res) => {
     try {
