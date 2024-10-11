@@ -55,10 +55,6 @@ app.use('/', testDb)
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 
-// Error Catching
-app.all('*', (req, res, next) => {
-    next(new ExpressError('Page not founddd!', 404));
-})
 
 app.use(errorHandler);
 

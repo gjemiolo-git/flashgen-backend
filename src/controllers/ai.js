@@ -40,19 +40,21 @@ async function createFlashcardWithTopic(frontContent, backContent, setId, topic)
     return card;
 }
 
-async function fetchFlashcardsFromAI(topic, number, existingFlashcards) {
+async function fetchFlashcardsFromAI(topicNames, number, existingFlashcards, specs) {
+    const prompt = `Generate ${number} new flashcards focusing on the topics: [${topicNames}]. Consider specification: [${specs}]. Align specification with the topic if possible, but prioritize specification. The flashcard content should be distinct from the following existing flashcards:
+                ${JSON.stringify(existingFlashcards)} but still follow the specification and topics.
+                Focus on key aspects of the topics, relationships between them, and choose ${number} most interesting questions you can generate.
+                Provide the output as a single JSON array containing ${number} most interesting objects. Each object should have two properties: 'frontContent' for the question or phrase, and 'backContent' for the answer. Ensure the entire output is a valid JSON array.
+                ${SPECIAL_CHAR_AVOIDANCE}
+                Lastly, remember focus on generating flashcards for the given specification and topics if possible, nothing else.
+                `
     const response = await axios.post(
         OPENAI_API_URL,
         {
             model: "gpt-4o-mini",
             messages: [{
                 role: "user",
-                content: `Generate ${number} new flashcards on the topic of ${topic}, distinct from the following existing flashcards:
-                ${JSON.stringify(existingFlashcards)}
-                Focus on key aspects of the topic, relationships between them, and choose ${number} most interesting ones.
-                Provide the output as a single JSON array containing ${number} most interesting objects. Each object should have two properties: 'frontContent' for the question or phrase, and 'backContent' for the answer. Ensure the entire output is a valid JSON array.
-                ${SPECIAL_CHAR_AVOIDANCE}
-                `
+                content: prompt
             }],
             temperature: 0.7
         },
@@ -75,7 +77,7 @@ async function saveFlashcards(flashcardsArray, userId, topicName) {
 
         const [topic, created] = await Topic.findOrCreate({
             where: { name: topicName },
-            defaults: { created_by: userId }  // Use created_by instead of createdBy
+            defaults: { created_by: userId }
         });
         await flashcardSet.addTopic(topic);
 
@@ -157,6 +159,42 @@ async function getUserFlashcardSets(userId, page = 1, limit = 5) {
     }
 }
 
+exports.createFlashcardSetWithFlashcards = async (req, res) => {
+    try {
+        const { name, specs, topics, flashcards } = req.body.payload;
+        const { user } = req.user;
+        const userId = user.id;
+
+        if (!name || !specs || !topics || !flashcards || !userId) {
+            return res.status(400).json({ error: 'Missing data.' });
+        }
+
+        const flashcardSet = await FlashcardSet.create({
+            createdBy: userId,
+            name: `${name}`
+        });
+
+        await Promise.all(topics.map(async (t) => {
+            const [topic, created] = await Topic.findOrCreate({
+                where: { id: t.id },
+                defaults: { created_by: userId }
+            });
+            await flashcardSet.addTopic(topic);
+        }))
+
+        await Promise.all(flashcards.map(async (flashcard) => {
+            await Flashcard.create({
+                ...flashcard,
+                setId: flashcardSet.id
+            });
+        }));
+        res.status(201).json({ success: true, message: 'Flashcard set created successfully', flashcardSetId: flashcardSet.id });
+    } catch (error) {
+        console.error('Error in creating route, source: user:', error);
+        res.status(500).json({ error: 'Error creating flashcard set', details: error.message });
+    }
+}
+
 
 exports.getUserFlashcardSets = async (req, res) => {
     try {
@@ -188,53 +226,33 @@ exports.correctFlashcardSet = async (req, res) => {
     }
 };
 
-exports.addFlashcards = async (setId, number, userId) => {
+exports.fetchNewFlashcards = async (req, res) => {
     try {
-        const flashcardSet = await FlashcardSet.findByPk(setId, {
-            include: [
-                { model: Flashcard, as: 'flashcards' },
-                { model: Topic, as: 'topics' }
-            ]
-        });
+        const { topics, specs, number, existingFlashcards } = req.body;
 
-        if (!flashcardSet) {
-            throw new Error('Flashcard set not found');
+        if (!Array.isArray(topics) || !specs || typeof number !== 'number' || !Array.isArray(existingFlashcards)) {
+            console.log(topics, specs, number, existingFlashcards);
+            return res.status(400).json({ error: 'Invalid input data' });
         }
 
-        const existingFlashcards = flashcardSet.flashcards.map(card => ({
-            frontContent: card.frontContent,
-            backContent: card.backContent
-        }));
+        const topicNames = topics.map(topic => topic.name);
+        const generatedFlashcards = await fetchFlashcardsFromAI(topicNames, number, existingFlashcards, specs);
 
-        const topic = flashcardSet.topics[0];
-        const newFlashcards = await fetchFlashcardsFromAI(topic.name, number, existingFlashcards);
-
-        const savedCards = [];
-        for (const flashcard of newFlashcards) {
-            const { frontContent, backContent } = flashcard;
-            const card = await createFlashcardWithTopic(frontContent, backContent, setId, topic);
-            savedCards.push(card);
-        }
-
-        console.log(`Successfully added ${savedCards.length} new flashcards to set ${setId}.`);
-
-        return flashcardSet;
+        res.status(200).json({ flashcards: generatedFlashcards });
     } catch (error) {
-        console.error('Error adding flashcards:', error);
-        throw error;
+        console.error('Error generating flashcards:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-}
-
+};
 
 exports.createFlashcardSet = async (req, res) => {
-    const { topic, number } = req.body;
-    const userId = 1; // Assuming user authentication is implemented
-
-    if (!topic || !number) {
-        return res.status(400).json({ error: 'Both topic and number must be provided in the specification' });
-    }
-
     try {
+        const { topic, number } = req.body;
+        const userId = 1; // Assuming user authentication is implemented
+
+        if (!topic || !number) {
+            return res.status(400).json({ error: 'Both topic and number must be provided in the specification' });
+        }
         console.log('Loading flashcards... [Querying AI]');
         const flashcards = await fetchFlashcardsFromAI(topic, number, []);
         console.log('Saving flashcards...');
@@ -401,10 +419,16 @@ exports.getFlashcardSet = async (req, res) => {
 exports.deleteFlashcardSet = async (req, res) => {
     try {
         const { id } = req.params;
+        const { user } = req.user || null;
         const flashcardSet = await FlashcardSet.findByPk(id);
+        const isCreator = user.id === flashcardSet.createdBy;
 
         if (!flashcardSet) {
             return res.status(404).json({ error: 'Flashcard set not found' });
+        }
+
+        if (!isCreator) {
+            return res.status(401).json({ error: 'Unathorized' });
         }
 
         await sequelize.transaction(async (t) => {
@@ -442,7 +466,7 @@ exports.getTopics = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 15;
         const offset = (page - 1) * limit;
-        const user = req.user || null;
+        const user = req.user?.user ?? null;
 
         const { count, rows: topics } = await Topic.findAndCountAll({
             where: { visibility: 'public' },
@@ -465,7 +489,7 @@ exports.getTopics = async (req, res) => {
                 }
             ],
             group: ['Topic.id', 'creator.id'],
-            order: [['created_at', 'DESC']],
+            order: [[sequelize.fn('COUNT', sequelize.col('FlashcardSets.id')), 'DESC']],
             limit: limit,
             offset: offset,
             distinct: true,
