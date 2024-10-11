@@ -98,38 +98,41 @@ async function saveFlashcards(flashcardsArray, userId, topicName) {
     }
 }
 
-async function getUserFlashcardSets(userId, page = 1, limit = 5) {
+exports.getTopicFlashcardSets = async (req, res) => {
     try {
+        const topicId = req.params.id;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
         const offset = (page - 1) * limit;
+
         const { count, rows: flashcardSets } = await FlashcardSet.findAndCountAll({
-            where: { createdBy: userId },
             attributes: [
                 'id',
                 'name',
-                'visibility'
+                'visibility',
+                'createdBy'
             ],
             include: [
                 {
-                    model: Flashcard,
-                    as: 'flashcards',
-                    attributes: [],
-                    required: false
-                },
-                {
                     model: Topic,
                     as: 'topics',
+                    where: { id: topicId },
                     attributes: ['id', 'name'],
                     through: { attributes: [] }
+                },
+                {
+                    model: User,
+                    as: 'creator',
+                    attributes: ['id', 'username']
                 }
             ],
-            group: ['FlashcardSet.id', 'topics.id'],
+            group: ['FlashcardSet.id', 'creator.id', 'topics.id'],
             order: [['createdAt', 'DESC']],
             limit: limit,
             offset: offset,
             distinct: true,
             subQuery: false
         });
-
         const formattedFlashcardSets = await Promise.all(flashcardSets.map(async (set) => {
             const cardCount = await Flashcard.count({ where: { setId: set.id } });
             return {
@@ -137,6 +140,8 @@ async function getUserFlashcardSets(userId, page = 1, limit = 5) {
                 name: set.name,
                 cardCount: cardCount,
                 visibility: set.visibility,
+                creator: set.creator.username,
+                isCreator: req.user ? req.user.id === set.createdBy : false,
                 topics: set.topics.map(topic => ({
                     id: topic.id,
                     name: topic.name
@@ -147,17 +152,17 @@ async function getUserFlashcardSets(userId, page = 1, limit = 5) {
         const totalCount = count.length;
         const totalPages = Math.ceil(totalCount / limit);
 
-        return {
+        res.status(200).json({
             flashcardSets: formattedFlashcardSets,
             totalCount: totalCount,
             currentPage: page,
             totalPages: totalPages
-        };
+        });
     } catch (error) {
-        console.error('Error fetching user flashcard sets:', error);
-        throw error;
+        console.error('Error fetching topic flashcard sets:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-}
+};
 
 exports.createFlashcardSetWithFlashcards = async (req, res) => {
     try {
@@ -195,14 +200,83 @@ exports.createFlashcardSetWithFlashcards = async (req, res) => {
     }
 }
 
+async function getUserFlashcardSets(user, page = 1, limit = 5) {
+    try {
+        const userId = user.id;
+        const offset = (page - 1) * limit;
+        const { count, rows: flashcardSets } = await FlashcardSet.findAndCountAll({
+            where: { createdBy: userId },
+            attributes: [
+                'id',
+                'name',
+                'createdBy',
+                'visibility'
+            ],
+            include: [
+                {
+                    model: Flashcard,
+                    as: 'flashcards',
+                    attributes: [],
+                    required: false
+                },
+                {
+                    model: Topic,
+                    as: 'topics',
+                    attributes: ['id', 'name'],
+                    through: { attributes: [] }
+                },
+                {
+                    model: User,
+                    as: 'creator',
+                    attributes: ['id', 'username']
+                }
+            ],
+            group: ['FlashcardSet.id', 'topics.id', 'creator.id'],
+            order: [['createdAt', 'DESC']],
+            limit: limit,
+            offset: offset,
+            distinct: true,
+            subQuery: false
+        });
+
+        const formattedFlashcardSets = await Promise.all(flashcardSets.map(async (set) => {
+            const cardCount = await Flashcard.count({ where: { setId: set.id } });
+            return {
+                id: set.id,
+                name: set.name,
+                cardCount: cardCount,
+                isCreator: userId ? userId === set.createdBy : false,
+                creator: set.creator.username,
+                visibility: set.visibility,
+                topics: set.topics.map(topic => ({
+                    id: topic.id,
+                    name: topic.name
+                }))
+            };
+        }));
+
+        const totalCount = count.length;
+        const totalPages = Math.ceil(totalCount / limit);
+
+        return {
+            flashcardSets: formattedFlashcardSets,
+            totalCount: totalCount,
+            currentPage: page,
+            totalPages: totalPages
+        };
+    } catch (error) {
+        console.error('Error fetching user flashcard sets:', error);
+        throw error;
+    }
+}
 
 exports.getUserFlashcardSets = async (req, res) => {
     try {
-        const userId = 1;
+        const { user } = req.user;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 5;
 
-        const result = await getUserFlashcardSets(userId, page, limit);
+        const result = await getUserFlashcardSets(user, page, limit);
         res.json(result);
     } catch (error) {
         console.error('Error in dashboard route:', error);
@@ -231,7 +305,7 @@ exports.fetchNewFlashcards = async (req, res) => {
         const { topics, specs, number, existingFlashcards } = req.body;
 
         if (!Array.isArray(topics) || !specs || typeof number !== 'number' || !Array.isArray(existingFlashcards)) {
-            console.log(topics, specs, number, existingFlashcards);
+            //console.log(topics, specs, number, existingFlashcards);
             return res.status(400).json({ error: 'Invalid input data' });
         }
 
@@ -517,7 +591,81 @@ exports.getTopics = async (req, res) => {
     }
 };
 
+exports.getTopicDashboard = async (req, res) => {
+    try {
+        const topicId = req.params.id;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const offset = (page - 1) * limit;
+        const user = req.user?.user ?? null;
 
+        // Fetch the topic information
+        const topic = await Topic.findByPk(topicId, {
+            attributes: ['id', 'name']
+        });
+
+        if (!topic) {
+            return res.status(404).json({ error: 'Topic not found' });
+        }
+
+        const { count, rows: flashcardSets } = await FlashcardSet.findAndCountAll({
+            attributes: [
+                'id',
+                'name',
+                'visibility',
+                'createdBy',
+                [sequelize.fn('COUNT', sequelize.col('flashcards.id')), 'cardCount']
+            ],
+            include: [
+                {
+                    model: Topic,
+                    as: 'topics',
+                    where: { id: topicId },
+                    attributes: [],
+                    through: { attributes: [] }
+                },
+                {
+                    model: User,
+                    attributes: ['id', 'username'],
+                    as: 'creator'
+                },
+                {
+                    model: Flashcard,
+                    attributes: [],
+                    as: 'flashcards'
+                }
+            ],
+            group: ['FlashcardSet.id', 'creator.id'],
+            order: [['createdAt', 'DESC']],
+            limit: limit,
+            offset: offset,
+            distinct: true,
+            subQuery: false
+        });
+
+        const formattedFlashcardSets = flashcardSets.map(set => ({
+            id: set.id,
+            name: set.name,
+            visibility: set.visibility,
+            isCreator: user ? user.id === set.createdBy : false,
+            creator: set.creator.username,
+            cardCount: parseInt(set.getDataValue('cardCount'), 10)
+        }));
+
+        const totalCount = count.length;
+        const totalPages = Math.ceil(totalCount / limit);
+
+        res.status(200).json({
+            flashcardSets: formattedFlashcardSets,
+            topics: [{ id: topic.id, name: topic.name }],
+            totalCount: totalCount,
+            currentPage: page,
+            totalPages: totalPages
+        });
+    } catch (error) {
+        handleError(res, 'Error fetching flashcard sets for topic', error);
+    }
+};
 
 exports.createTopic = async (req, res) => {
     try {
@@ -534,7 +682,7 @@ exports.createTopic = async (req, res) => {
             parent_id: parentId,
             created_by: userId
         });
-        console.log(topic);
+        //console.log(topic);
         res.status(201).json(topic);
     } catch (error) {
         handleError(res, 'Error creating topic', error);

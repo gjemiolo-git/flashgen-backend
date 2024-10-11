@@ -9,7 +9,7 @@ const { validationMiddleware, authenticateJWT, publicAuthenticateJWT } = require
 //checkOwnership('flashcardSet')/
 
 // General
-router.get('/dashboard/flashcard-sets', aiController.getUserFlashcardSets);
+router.get('/dashboard/flashcard-sets', authenticateJWT, aiController.getUserFlashcardSets);
 router.post('/flashcard-sets', authenticateJWT, aiController.createFlashcardSetWithFlashcards);
 router.post('/flashcards', authenticateJWT, aiController.fetchNewFlashcards);
 router.put('/flashcard-sets/:id/correct', aiController.correctFlashcardSet);
@@ -26,6 +26,7 @@ router.get('/flashcard-sets/:id', aiController.getFlashcardSet);
 router.post('/topics', authenticateJWT, aiController.createTopic);
 router.get('/topics/:id', aiController.getTopic);
 router.get('/topics', publicAuthenticateJWT, aiController.getTopics);
+router.get('/topics-dashboard/:id', publicAuthenticateJWT, aiController.getTopicDashboard);
 router.delete('/topics/:id', aiController.deleteTopic);
 // router.put('/topics/:id', authenticateJWT, aiController.updateTopic);
 

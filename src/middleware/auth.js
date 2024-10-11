@@ -20,7 +20,7 @@ exports.publicAuthenticateJWT = (req, res, next) => {
             return next(err);
         }
         if (user) {
-            req.user = { user };
+            req.user = user;
         }
         next();
     })(req, res, next);
