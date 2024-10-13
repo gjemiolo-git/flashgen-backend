@@ -523,24 +523,6 @@ exports.getFlashcard = async (req, res) => {
     }
 };
 
-exports.deleteFlashcard = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const flashcard = await Flashcard.findByPk(id);
-
-        if (!flashcard) {
-            return res.status(404).json({ error: 'Flashcard not found' });
-        }
-
-        await flashcard.destroy();
-        res.status(200).json({ success: true, message: "Flashcard removed successfully" });
-    } catch (error) {
-        res.status(500).json({ error: 'Error deleting flashcard', details: error.message });
-    }
-};
-
-
-
 /// FLASHCARD SET
 exports.getFlashcardSet = async (req, res) => {
     try {
@@ -808,12 +790,16 @@ exports.updateTopic = async (req, res) => {
 exports.deleteTopic = async (req, res) => {
     try {
         const { id } = req.params;
+        const { user } = req.user || null;
         const topic = await Topic.findByPk(id, {
             include: [{ model: Topic, as: 'children' }]
         });
-
+        const isCreator = user.id === topic.created_by;
         if (!topic) {
             return res.status(404).json({ error: 'Topic not found' });
+        }
+        if (!isCreator) {
+            return res.status(401).json({ error: 'Unathorised' });
         }
         if (topic.children && topic.children.length > 0) {
             await Topic.destroy({ where: { parent_id: id } });

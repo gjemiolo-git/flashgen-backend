@@ -5,39 +5,11 @@ const { sign } = require('jsonwebtoken');
 const User = require('../db/models/User')(sequelize);
 const { JWT_SECRET } = require('../constants');
 
-exports.getUsers = async (req, res) => {
-    try {
-        const users = await User.findAll({
-            attributes: ['id', 'username', 'email', 'password_hash']
-        })
-        return res.status(200).json({
-            success: true,
-            users
-        })
-    } catch (error) {
-        return res.status(500).json({
-            error: error.message
-        })
-    }
-}
-
 exports.logout = (req, res) => {
     res.status(200)
         .clearCookie('jwt', { httpOnly: true, sameSite: 'Lax' })
         .json({ success: true, message: 'Logged out successfully' });
 };
-
-exports.protected = async (req, res) => {
-    try {
-        return res.status(200).json({
-            info: 'Protected reached'
-        })
-    } catch (error) {
-        return res.status(550).json({
-            error: error.message
-        })
-    }
-}
 
 exports.register = async (req, res) => {
     try {

@@ -72,10 +72,8 @@ async function getUserByEmail(identifier) {
             }
         });
         if (user) {
-            //console.log('User found:', user.toJSON());
             return { user };
         } else {
-            //console.log('No user found with this email.');
             return { user: null };
         }
     } catch (error) {
