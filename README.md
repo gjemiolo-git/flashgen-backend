@@ -72,7 +72,7 @@ Default values assued in `./src/constants/index.js`
 - `NODE_ENV`: Set to 'production' for production environment
 - `SERVER_PORT`: Port number for the server
 - `CLIENT_URL`: URL of the frontend client for CORS
-- 
+  
 - `DB_ADDRESS`: Address to the database
 - `DB_PORT`: Port to the database
 - `DB_SUPERUSER`: Superuser for database
