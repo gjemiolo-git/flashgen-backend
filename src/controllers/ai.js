@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { OPENAI_API_KEY, OPENAI_API_URL } = require('../constants');
 const { sequelize } = require('../db');
+const { Op } = require('sequelize');
 const Flashcard = require('../db/models/Flashcard')(sequelize);
 const FlashcardSet = require('../db/models/FlashcardSet')(sequelize);
 const Topic = require('../db/models/Topic')(sequelize);
@@ -42,10 +43,11 @@ async function createFlashcardWithTopic(frontContent, backContent, setId, topic)
 
 async function fetchFlashcardsFromAI(topicNames, number, existingFlashcards, specs) {
     const prompt = `Generate ${number} new flashcards focusing on the topics: [${topicNames}]. Consider specification: [${specs}]. Align specification with the topic if possible, but prioritize specification. The flashcard content should be distinct from the following existing flashcards:
-                ${JSON.stringify(existingFlashcards)} but still follow the specification and topics.
+                ${JSON.stringify(existingFlashcards)} but still follow the specification and topics. Use emojis to make it more interesting.
                 Focus on key aspects of the topics, relationships between them, and choose ${number} most interesting questions you can generate.
                 Provide the output as a single JSON array containing ${number} most interesting objects. Each object should have two properties: 'frontContent' for the question or phrase, and 'backContent' for the answer. Ensure the entire output is a valid JSON array.
                 ${SPECIAL_CHAR_AVOIDANCE}
+                For each card, limit each frontContent and wordContent up to 90 words.
                 Lastly, remember focus on generating flashcards for the given specification and topics if possible, nothing else.
                 `
     const response = await axios.post(
@@ -199,6 +201,76 @@ exports.createFlashcardSetWithFlashcards = async (req, res) => {
         res.status(500).json({ error: 'Error creating flashcard set', details: error.message });
     }
 }
+
+exports.updateFlashcardSet = async (req, res) => {
+    try {
+        const { name, topics } = req.body.payload;
+        const newFlashcards = req.body.payload.flashcards;
+        const { user } = req.user;
+        const userId = user.id;
+        const setId = req.params.id;
+
+        if (!name || !topics || !newFlashcards || !userId || !setId) {
+            return res.status(400).json({ error: 'Missing data.' });
+        }
+
+        const flashcardSet = await FlashcardSet.findByPk(setId, {
+            include: [
+                { model: Flashcard, as: 'flashcards' },
+                { model: Topic, as: 'topics' }
+            ]
+        });
+
+        if (!flashcardSet) {
+            return res.status(404).json({ error: 'Flashcard set not found.' });
+        }
+
+        await flashcardSet.update({ name });
+
+        await flashcardSet.setTopics([]);
+        await Promise.all(topics.map(async (t) => {
+            const [topic, created] = await Topic.findOrCreate({
+                where: { id: t.id },
+                defaults: { created_by: userId }
+            });
+            await flashcardSet.addTopic(topic);
+        }));
+
+        const flashcardsToUpdate = newFlashcards.filter(newFlashcard => newFlashcard.id);
+        const flashcardsToCreate = newFlashcards.filter(newFlashcard => !newFlashcard.id);
+
+        await Promise.all(flashcardsToUpdate.map(async flashcard => {
+            await Flashcard.update(flashcard, {
+                where: { id: flashcard.id, setId: flashcardSet.id }
+            });
+        }));
+
+        await Promise.all(flashcardsToCreate.map(async flashcard => {
+            await Flashcard.create({
+                ...flashcard,
+                setId: flashcardSet.id
+            });
+        }));
+
+        const newFlashcardIds = newFlashcards.map(f => f.id).filter(id => id);
+        await Flashcard.destroy({
+            where: {
+                setId: flashcardSet.id,
+                id: { [Op.notIn]: newFlashcardIds }
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Flashcard set updated successfully',
+            flashcardSetId: flashcardSet.id
+        });
+
+    } catch (error) {
+        console.error('Error in updating flashcard set:', error);
+        res.status(500).json({ error: 'Error updating flashcard set', details: error.message });
+    }
+};
 
 async function getUserFlashcardSets(user, page = 1, limit = 5) {
     try {
@@ -473,6 +545,7 @@ exports.deleteFlashcard = async (req, res) => {
 exports.getFlashcardSet = async (req, res) => {
     try {
         const { id } = req.params;
+        const { user } = req.user || {};
         const flashcardSet = await FlashcardSet.findByPk(id, {
             include: [
                 { model: Flashcard, as: 'flashcards', include: [{ model: Topic, as: 'topics' }] },
@@ -484,11 +557,16 @@ exports.getFlashcardSet = async (req, res) => {
             return res.status(404).json({ error: 'Flashcard set not found' });
         }
 
-        res.status(200).json(flashcardSet);
+        const isCreator = user && user.id === flashcardSet.createdBy;
+        const flashcardSetJSON = flashcardSet.toJSON();
+        flashcardSetJSON.isCreator = isCreator;
+
+        res.status(200).json(flashcardSetJSON);
     } catch (error) {
         res.status(500).json({ error: 'Error fetching flashcard set', details: error.message });
     }
 };
+
 
 exports.deleteFlashcardSet = async (req, res) => {
     try {

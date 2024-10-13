@@ -11,13 +11,14 @@ const { validationMiddleware, authenticateJWT, publicAuthenticateJWT } = require
 // General
 router.get('/dashboard/flashcard-sets', authenticateJWT, aiController.getUserFlashcardSets);
 router.post('/flashcard-sets', authenticateJWT, aiController.createFlashcardSetWithFlashcards);
+router.put('/flashcard-sets/:id/update', authenticateJWT, aiController.updateFlashcardSet);
 router.post('/flashcards', authenticateJWT, aiController.fetchNewFlashcards);
-router.put('/flashcard-sets/:id/correct', aiController.correctFlashcardSet);
+router.put('/flashcard-sets/:id/update', aiController.correctFlashcardSet);
 router.delete('/flashcard-sets/:id', authenticateJWT, aiController.deleteFlashcardSet);
 
 // Flashcard Set routes
 //router.post('/flashcard-sets', aiController.createFlashcardSet);
-router.get('/flashcard-sets/:id', aiController.getFlashcardSet);
+router.get('/flashcard-sets/:id', publicAuthenticateJWT, aiController.getFlashcardSet);
 
 // router.put('/flashcard-sets/:id', authenticateJWT, aiController.updateFlashcardSet);
 
