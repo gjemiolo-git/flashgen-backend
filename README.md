@@ -1,6 +1,7 @@
-# Flashcard Learning API
-
-This is the backend API for a flashcard learning web application. It provides endpoints for user authentication, flashcard set management, topic handling, and AI-assisted flashcard generation.
+# Flashgen
+This is the backend API for a flashcard learning web application - FlashGen. 
+It provides endpoints for user authentication, flashcard set management, topic handling, and AI-assisted flashcard generation. 
+It is part of the codebase for PERN stack, utilising PostgreSQL through Sequelize ORM, Passport for authentication with JWT, and OpenAI API.
 
 ## Features
 
@@ -18,6 +19,7 @@ This is the backend API for a flashcard learning web application. It provides en
 - PostgreSQL (assumed based on typical usage with Sequelize)
 - Sequelize ORM (assumed based on typical Express.js stack)
 
+## API Routes
 <details>
 <summary>API Routes</summary>
 
@@ -60,11 +62,10 @@ This is the backend API for a flashcard learning web application. It provides en
 4. Initialize the database
 5. Start the server: `npm start`
 
-
-<details>
-<summary>API Routes</summary>
-
 ## Environment Variables
+<details>
+<summary>Environment Variables</summary>
+
 
 Default values assued in `./src/constants/index.js`
 
@@ -93,13 +94,4 @@ The API uses JSON Web Tokens (JWT) for authentication. Protected routes require 
 The API includes centralized error handling middleware to process and return appropriate error responses.
 
 ## AI Integration
-
 The API includes routes for AI-assisted flashcard generation. The specific AI model and integration details should be implemented in the `aiController`.
-
-## Contributing
-
-[Include guidelines for contributing to the project]
-
-## License
-
-[Specify the license under which this project is released]
