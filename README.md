@@ -94,4 +94,4 @@ The API uses JSON Web Tokens (JWT) for authentication. Protected routes require 
 The API includes centralized error handling middleware to process and return appropriate error responses.
 
 ## AI Integration
-The API includes routes for AI-assisted flashcard generation. The specific AI model and integration details should be implemented in the `aiController`.
+The API includes routes for AI-assisted flashcard generation. The specific AI model and integration details are implemented in the `./src/controllers/ai.js`.
