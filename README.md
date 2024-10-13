@@ -1,5 +1,5 @@
-# Flashgen
-This is the backend API for a flashcard learning web application - FlashGen. 
+# Flashcard learning web application
+This is the backend API for a flashcard learning web application. 
 It provides endpoints for user authentication, flashcard set management, topic handling, and AI-assisted flashcard generation. 
 It is part of the codebase for PERN stack, utilising PostgreSQL through Sequelize ORM, Passport for authentication with JWT, and OpenAI API.
 
@@ -16,8 +16,8 @@ It is part of the codebase for PERN stack, utilising PostgreSQL through Sequeliz
 - Node.js
 - Express.js
 - Passport.js for authentication
-- PostgreSQL (assumed based on typical usage with Sequelize)
-- Sequelize ORM (assumed based on typical Express.js stack)
+- PostgreSQL 
+- Sequelize ORM 
 
 ## API Routes
 <details>
