@@ -41,11 +41,12 @@ exports.login = async (req, res) => {
         const isProduction = process.env.NODE_ENV === 'production';
 
         const cookieOptions = {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: isProduction ? 'None' : 'Lax',
+            httpOnly: false,  // Allow JavaScript access to the cookie
+            secure: false,    // Allow cookies over HTTP
+            sameSite: 'Lax', // Less restrictive SameSite setting
             maxAge: 60 * 60 * 1000
         };
+
 
 
         console.log('Sending response with token:', token);

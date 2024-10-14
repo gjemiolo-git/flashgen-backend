@@ -26,12 +26,10 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 app.use(cors({
-    origin: [`http://${CLIENT_URL}`, `https://${CLIENT_URL}`, `https://www.${CLIENT_URL}`],
+    origin: true, // Allow all origins
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    exposedHeaders: ['Content-Length', 'X-Custom-Header'],
     credentials: true,
-    maxAge: 600
 }));
 
 // Initialise routes
