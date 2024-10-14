@@ -47,11 +47,8 @@ exports.login = async (req, res) => {
             maxAge: 60 * 60 * 1000
         };
 
-        // Paused due to .onredener.com presence on public suffix list
-        // if (isProduction) {
-        //     cookieOptions.domain = COOKIE_DOMAIN;
-        // }
 
+        console.log('Sending response with token:', token);
         return res.status(200)
             .cookie('jwt', token, cookieOptions)
             .json({
