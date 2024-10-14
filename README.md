@@ -67,8 +67,9 @@ It is part of the codebase for PERN stack, utilising PostgreSQL through Sequeliz
 <summary>Environment Variables</summary>
 
 
-Default values assued in `./src/constants/index.js`
+Most of the default values assued in `./src/constants/index.js`
 
+- `PROJECT_NAME`: Name branding for the project
 - `NODE_ENV`: Set to 'production' for production environment
 - `SERVER_PORT`: Port number for the server
 - `CLIENT_URL`: URL of the frontend client for CORS
@@ -77,8 +78,10 @@ Default values assued in `./src/constants/index.js`
 - `DB_PORT`: Port to the database
 - `DB_SUPERUSER`: Superuser for database
 - `DB_PASSWORD`: Password for database
+- `DB_URL`: URL for the database, when deploying - Overwrites local settings when present
 
 - `JWT_SECRET`: Secret for JWT
+- `COOKIE_DOMAIN`: For JWT Security, when domain is not on public suffix list.
 
 - `OPENAI_API_KEYY`: API KEY to OpenAI(Spelling due to overriding with local key.)
 - `OPENAI_API_URL`: URL for OPENAI if different or changed
