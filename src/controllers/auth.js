@@ -41,15 +41,12 @@ exports.login = async (req, res) => {
         const isProduction = process.env.NODE_ENV === 'production';
 
         const cookieOptions = {
-            httpOnly: false,
-            secure: false,
-            sameSite: 'Lax',
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'None' : 'Lax',
             maxAge: 60 * 60 * 1000
         };
 
-
-
-        console.log('Sending response with token:', token);
         return res.status(200)
             .cookie('jwt', token, cookieOptions)
             .json({
