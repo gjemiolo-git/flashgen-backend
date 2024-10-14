@@ -9,6 +9,7 @@ module.exports = {
     SERVER_URL: process.env.SERVER_URL,
 
     //DB
+    DB_URL: process.env.DB_URL || null,
     DB_ADDRESS: process.env.DB_ADDRESS || 'localhost',
     DB_NAME: process.env.DB_NAME || 'flashgen',
     DB_USERNAME: process.env.DB_SUPERUSER || 'postgre',
