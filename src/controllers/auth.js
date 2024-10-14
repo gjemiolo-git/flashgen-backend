@@ -38,7 +38,6 @@ exports.login = async (req, res) => {
     }
     try {
         const token = sign(payload, JWT_SECRET, { expiresIn: '1h' });
-
         const isProduction = process.env.NODE_ENV === 'production';
 
         const cookieOptions = {
@@ -48,9 +47,10 @@ exports.login = async (req, res) => {
             maxAge: 60 * 60 * 1000
         };
 
-        if (isProduction) {
-            cookieOptions.domain = COOKIE_DOMAIN;
-        }
+        // Paused due to .onredener.com presence on public suffix list
+        // if (isProduction) {
+        //     cookieOptions.domain = COOKIE_DOMAIN;
+        // }
 
         return res.status(200)
             .cookie('jwt', token, cookieOptions)
