@@ -26,7 +26,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 app.use(cors({
-    origin: [`https://${CLIENT_URL}`, `https://www.${CLIENT_URL}`],
+    origin: [`http://${CLIENT_URL}`, `https://${CLIENT_URL}`, `https://www.${CLIENT_URL}`],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
