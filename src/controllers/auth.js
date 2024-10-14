@@ -3,7 +3,7 @@ const { wrapAsync } = require('../utils/wrapAsync');
 const { hash } = require('bcryptjs');
 const { sign } = require('jsonwebtoken');
 const User = require('../db/models/User')(sequelize);
-const { JWT_SECRET } = require('../constants');
+const { JWT_SECRET, CLIENT_URL } = require('../constants');
 
 exports.logout = (req, res) => {
     res.status(200)
@@ -38,15 +38,29 @@ exports.login = async (req, res) => {
     }
     try {
         const token = sign(payload, JWT_SECRET, { expiresIn: '1h' });
+
+        const isProduction = process.env.NODE_ENV === 'production';
+
+        const cookieOptions = {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'None' : 'Lax',
+            maxAge: 60 * 60 * 1000
+        };
+
+        if (isProduction) {
+            cookieOptions.domain = CLIENT_URL;
+        }
+
         return res.status(200)
-            .cookie('jwt', token, { httpOnly: true, sameSite: 'Lax' })
+            .cookie('jwt', token, cookieOptions)
             .json({
                 user: {
                     username: user.username,
                     email: user.email
                 },
                 success: true,
-                message: 'Logged in successfuly'
+                message: 'Logged in successfully'
             })
     } catch (error) {
         return res.status(500).json({
@@ -54,4 +68,5 @@ exports.login = async (req, res) => {
         })
     }
 }
+
 
