@@ -41,9 +41,9 @@ exports.login = async (req, res) => {
         const isProduction = process.env.NODE_ENV === 'production';
 
         const cookieOptions = {
-            httpOnly: false,  // Allow JavaScript access to the cookie
-            secure: false,    // Allow cookies over HTTP
-            sameSite: 'Lax', // Less restrictive SameSite setting
+            httpOnly: true,
+            secure: false,
+            sameSite: 'Lax',
             maxAge: 60 * 60 * 1000
         };
 
