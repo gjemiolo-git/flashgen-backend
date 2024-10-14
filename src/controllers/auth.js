@@ -3,7 +3,7 @@ const { wrapAsync } = require('../utils/wrapAsync');
 const { hash } = require('bcryptjs');
 const { sign } = require('jsonwebtoken');
 const User = require('../db/models/User')(sequelize);
-const { JWT_SECRET, CLIENT_URL } = require('../constants');
+const { JWT_SECRET, COOKIE_DOMAIN } = require('../constants');
 
 exports.logout = (req, res) => {
     res.status(200)
@@ -49,7 +49,7 @@ exports.login = async (req, res) => {
         };
 
         if (isProduction) {
-            cookieOptions.domain = CLIENT_URL;
+            cookieOptions.domain = COOKIE_DOMAIN;
         }
 
         return res.status(200)
