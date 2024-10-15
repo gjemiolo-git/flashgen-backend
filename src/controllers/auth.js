@@ -3,6 +3,7 @@ const { wrapAsync } = require('../utils/wrapAsync');
 const { hash } = require('bcryptjs');
 const { sign } = require('jsonwebtoken');
 const User = require('../db/models/User')(sequelize);
+const isProduction = process.env.NODE_ENV === 'production';
 const { JWT_SECRET, COOKIE_DOMAIN } = require('../constants');
 const cookieOptions = {
     httpOnly: true,
@@ -44,8 +45,6 @@ exports.login = async (req, res) => {
     }
     try {
         const token = sign(payload, JWT_SECRET, { expiresIn: '1h' });
-        const isProduction = process.env.NODE_ENV === 'production';
-
         return res.status(200)
             .cookie('jwt', token, cookieOptions)
             .json({
