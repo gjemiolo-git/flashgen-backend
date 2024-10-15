@@ -3,11 +3,19 @@ const { wrapAsync } = require('../utils/wrapAsync');
 const { hash } = require('bcryptjs');
 const { sign } = require('jsonwebtoken');
 const User = require('../db/models/User')(sequelize);
+const isProduction = process.env.NODE_ENV === 'production';
 const { JWT_SECRET, COOKIE_DOMAIN } = require('../constants');
+const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'None' : 'Lax',
+    maxAge: 60 * 60 * 1000,
+    partitioned: true,
+};
 
 exports.logout = (req, res) => {
     res.status(200)
-        .clearCookie('jwt', { httpOnly: true, sameSite: 'Lax' })
+        .clearCookie('jwt', cookieOptions)
         .json({ success: true, message: 'Logged out successfully' });
 };
 
