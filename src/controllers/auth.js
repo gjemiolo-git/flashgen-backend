@@ -46,6 +46,20 @@ exports.login = async (req, res) => {
     }
     try {
         const token = sign(payload, JWT_SECRET, { expiresIn: '1h' });
+        const isProduction = process.env.NODE_ENV === 'production';
+
+        const cookieOptions = {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'None' : 'Lax',
+            maxAge: 60 * 60 * 1000
+        };
+
+        // Paused due to .onredener.com presence on public suffix list
+        // if (isProduction) {
+        //     cookieOptions.domain = COOKIE_DOMAIN;
+        // }
+
         return res.status(200)
             .cookie('jwt', token, cookieOptions)
             .json({
