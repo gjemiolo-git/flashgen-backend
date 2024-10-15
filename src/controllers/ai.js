@@ -742,10 +742,7 @@ exports.createTopic = async (req, res) => {
             parent_id: parentId,
             created_by: userId
         });
-        topic.success = true;
-        topic.message = "Topic removed successfully.";
-        //console.log(topic);
-        res.status(201).json(topic);
+        res.status(201).json({ success: true, message: "Topic created successfully" });
     } catch (error) {
         handleError(res, 'Error creating topic', error);
     }
