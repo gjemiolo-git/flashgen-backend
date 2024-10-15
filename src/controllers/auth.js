@@ -9,7 +9,8 @@ const cookieOptions = {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? 'None' : 'Lax',
-    maxAge: 60 * 60 * 1000
+    maxAge: 60 * 60 * 1000,
+    partitioned: true,
 };
 
 exports.logout = (req, res) => {
