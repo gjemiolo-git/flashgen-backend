@@ -28,8 +28,6 @@ It is part of the codebase for PERN stack, utilising PostgreSQL through Sequeliz
 - `POST /api/auth/register`: Register a new user
 - `POST /api/auth/login`: User login
 - `POST /api/auth/logout`: User logout
-- `GET /api/auth/protected`: Test protected route
-- `GET /api/auth/get-users`: Get all users (likely admin only)
 
 ### Flashcard Set Routes
 
